@@ -2,6 +2,12 @@ package Client;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.Socket;
+import java.awt.*;
 import java.io.DataInputStream;
 import java.net.Socket;
 
@@ -38,9 +44,23 @@ public class Client {
             password = new JTextField(20);
             passwordPanel.add(passwordLabel);
             passwordPanel.add(password);
+            
+            
+            JButton sendButton = new JButton("Send");
+            sendButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String user = utilisateur.getText();
+                    String pass = password.getText();
+                    sendCredentialsToServer(user, pass);
+                }
+            });
+            
 
             bottomPanel.add(utilisateurPanel);
             bottomPanel.add(passwordPanel);
+            bottomPanel.add(sendButton);
+            
             frame.add(bottomPanel, BorderLayout.SOUTH);
 
             frame.setVisible(true);
@@ -67,4 +87,24 @@ public class Client {
             }).start();
         });
     }
+    
+    private static void sendCredentialsToServer(String user, String pass) {
+    	new Thread(()->{
+    		try {
+    			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+    			out.writeUTF(user);
+                out.writeUTF(pass);
+                out.flush();
+                
+                DataInputStream in= new DataInputStream(socket.getInputStream());
+                String serverResponse = in.readUTF();
+                SwingUtilities.invokeLater(() -> messageServeur.append("Server response: " + serverResponse + "\n"));
+              
+    		} catch (Exception e) {
+                e.printStackTrace();
+            }
+    		}).start();  
+    
+    }
+    
 }

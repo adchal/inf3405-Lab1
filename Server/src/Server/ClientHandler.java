@@ -1,6 +1,7 @@
 package Server;
+
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler extends Thread {
@@ -10,24 +11,36 @@ public class ClientHandler extends Thread {
     public ClientHandler(Socket socket, int clientNumber) {
         this.socket = socket;
         this.clientNumber = clientNumber;
-        System.out.println("New connection with client#" + clientNumber + " at " + socket);
+        System.out.println("New connection with client# " + clientNumber + " at " + socket);
     }
 
     @Override
     public void run() {
         try {
-            // Create output stream to send data to the client
+
+            DataInputStream in = new DataInputStream(socket.getInputStream());
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            out.writeUTF("Hello from server - You are client #" + clientNumber); // Send a message to the client
-        } catch (IOException e) {
-            System.out.println("Error handling client #" + clientNumber + ": " + e.getMessage());
-        } finally {
-            try {
-                socket.close(); // Close the client socket
-            } catch (IOException e) {
-                System.out.println("Failed to close socket for client #" + clientNumber);
-            }
-            System.out.println("Connection with client #" + clientNumber + " closed");
+
+
+            String utilisateur = in.readUTF();
+            String password = in.readUTF();
+
+            System.out.println("Received from client# " + clientNumber + ":");
+            System.out.println("Utilisateur: " + utilisateur);
+            System.out.println("Password: " + password);
+
+
+            String response = "Hello " + utilisateur + "! We got your password (" + password + ").";
+
+
+            out.writeUTF(response);
+            System.out.println("Sent to client# " + clientNumber + ": " + response);
+
+
+            socket.close();
+            System.out.println("Connection with client# " + clientNumber + " closed.");
+        } catch (Exception e) {
+            System.out.println("Error handling client# " + clientNumber + ": " + e);
         }
     }
 }
